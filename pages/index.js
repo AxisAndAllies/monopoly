@@ -117,7 +117,8 @@ export default function Home() {
     if (
       landedOn.ownedby &&
       landedOn.ownedby !== -1 &&
-      landedOn.ownedby !== curPlayerId()
+      landedOn.ownedby !== curPlayerId() &&
+      !landedOn.mortgaged
     ) {
       let actualRent = calcRent(landedOn);
       // railroads
@@ -163,8 +164,7 @@ export default function Home() {
       case "move":
         if (card.tileid) {
           let curPos = curPlayer().pos;
-          let newPos = properties.filter((p) => p.id == card.tileid)[0]
-            .position;
+          let newPos = tiles.findIndex((t) => t.id == card.tileid);
           if (curPos >= newPos) {
             // this means you passed Go
             addPlayerMoney(curPlayerId(), 200);
@@ -224,6 +224,7 @@ export default function Home() {
       case "freeparking":
       case "gotojail":
       case "luxurytax":
+      case "incometax":
         return () => {};
         break;
       case "jail":
