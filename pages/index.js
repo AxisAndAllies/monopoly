@@ -105,6 +105,25 @@ export default function Home() {
     setProperties(newprops);
   };
 
+  const checkAndPayRent = (landedOn) => {
+    if (
+      landedOn.ownedby &&
+      landedOn.ownedby !== -1 &&
+      landedOn.ownedby !== curPlayerId()
+    ) {
+      let actualRent = calcRent(landedOn);
+      // auto pay rent
+      addPlayerMoney(curPlayerId(), -actualRent);
+      console.log(landedOn);
+      addPlayerMoney(landedOn.ownedby, actualRent);
+      toast(
+        `Paid ${actualRent} to ${
+          players.filter((pl) => pl.id == landedOn.ownedby)[0].name
+        }`
+      );
+    }
+  };
+
   const evaluateCard = (card) => {
     console.log(card);
     switch (card.action) {
@@ -113,11 +132,21 @@ export default function Home() {
         break;
       case "move":
         if (card.tileid) {
-          setPlayerPos(
-            curPlayerId,
-            properties.filter((p) => p.id == card.tileid)[0].position
-          );
-          // TODO: handle payment...
+          let curPos = curPlayer().pos;
+          let newPos = properties.filter((p) => p.id == card.tileid)[0]
+            .position;
+          if (curPos >= newPos) {
+            // this means you passed Go
+            addPlayerMoney(curPlayerId(), 200);
+            toast("Passed Go, collected $200");
+          }
+          setPlayerPos(curPlayerId, newPos);
+          // pay owner if necessary
+          const landedOn = properties.filter(
+            (pr) =>
+              pr.id === tiles.filter((t, ind) => ind === curPlayer().pos)[0].id
+          )[0];
+          checkAndPayRent(landedOn);
         }
         if (card.groupid) {
           setPlayerPos(
@@ -162,11 +191,13 @@ export default function Home() {
   const specialActions = (p) => {
     switch (p.id) {
       case "go":
-        return null;
+      case "freeparking":
+      case "gotojail":
+      case "luxurytax":
+        return () => {};
         break;
       case "jail":
-        return null;
-        // return () => {}; // todo implement getting out of jail...
+        return () => {}; // todo implement getting out of jail...
         break;
       case "chance":
         return () => {
@@ -175,22 +206,14 @@ export default function Home() {
           evaluateCard(card);
         };
         break;
-      case "freeparking":
-        return null;
-        break;
       case "communitychest":
         return () => {
           let card = pickRandElem(communitychest);
           toast.info(card.title);
           evaluateCard(card);
         };
-        break;
-      case "gotojail":
-        return null;
-        break;
-      case "luxurytax":
-        return null;
-        break;
+      default:
+        throw Error("unhandled case");
     }
   };
 
@@ -246,22 +269,7 @@ export default function Home() {
                     pr.id ===
                     tiles.filter((t, ind) => ind === curPlayer().pos)[0].id
                 )[0];
-                if (
-                  landedOn.ownedby &&
-                  landedOn.ownedby !== -1 &&
-                  landedOn.ownedby !== curPlayerId()
-                ) {
-                  let actualRent = calcRent(landedOn);
-                  // auto pay rent
-                  addPlayerMoney(curPlayerId(), -actualRent);
-                  console.log(landedOn);
-                  addPlayerMoney(landedOn.ownedby, actualRent);
-                  toast(
-                    `Paid ${actualRent} to ${
-                      players.filter((pl) => pl.id == landedOn.ownedby)[0].name
-                    }`
-                  );
-                }
+                checkAndPayRent(landedOn);
 
                 if (landedOn.group === "Special") {
                   // auto do special action
@@ -401,7 +409,7 @@ export default function Home() {
             ))}
         </div>
       </main>
-      <ToastContainer autoClose={2000} newestOnTop={true} />
+      <ToastContainer autoClose={3000} newestOnTop={true} />
     </div>
   );
 }
