@@ -19,7 +19,7 @@ const BuyButton = ({ cost, onClick }) => (
   <button onClick={onClick}>Buy for ${cost}</button>
 );
 const SellButton = ({ cost, onClick }) => (
-  <button onClick={onClick}>Sell for ${cost >> 1}</button>
+  <button onClick={onClick}>Sell for ${cost}</button>
 );
 // const ActionButton = ({ descript, action }) =>
 //   action ? <button onClick={action}>{descript}</button> : null;
@@ -27,7 +27,7 @@ const SellButton = ({ cost, onClick }) => (
 const Player = ({ name, color }) => (
   <label
     style={{
-      "background-color": color,
+      backgroundColor: color,
       padding: "0.4em",
       fontSize: ".8em",
     }}
@@ -267,72 +267,79 @@ export default function Home() {
             .map((t) => properties.filter((p) => p.id == t.id)[0])
             // .sort((a, b) => a.position - b.position)
             .map((p, ind) => (
-              <>
-                <div
-                  className={styles.card}
-                  style={{
-                    borderColor: players.filter((pl) => pl.id == p.ownedby)[0]
-                      ?.color,
-                    backgroundColor: p.mortgaged ? "#ccc" : "#eaeaea",
-                  }}
-                >
-                  <p>{p.name}</p>
+              <div
+                className={styles.card}
+                style={{
+                  borderColor: players.filter((pl) => pl.id == p.ownedby)[0]
+                    ?.color,
+                  backgroundColor: p.mortgaged ? "#ccc" : "#eaeaea",
+                }}
+              >
+                <p>{p.name}</p>
 
-                  <label>{p.mortgaged && "(mortgaged)"}</label>
-                  {p.buildings ? <p>Buildings: {p.buildings}</p> : null}
+                <label>{p.mortgaged && "(mortgaged)"}</label>
+                {p.buildings ? <p>Buildings: {p.buildings}</p> : null}
 
-                  {p.price && (
-                    <>
-                      <p>rent = ${p.rent}</p>
-                      {p.ownedby == curPlayerId() && (
-                        <>
-                          {p.mortgaged ? (
-                            <UnMortgageButton
-                              cost={p.price * 0.55}
-                              onClick={() => {
-                                toast.info(`Un-mortgaged ${p.name}`);
-                                addPlayerMoney(curPlayerId(), -p.price * 0.55); // mortgage cost + 10%
-                                toggleMortgage(p.id);
-                              }}
-                            ></UnMortgageButton>
-                          ) : (
-                            <MortgageButton
-                              cost={p.price >> 1}
-                              onClick={() => {
-                                toast.info(`Mortgaged ${p.name}`);
-                                addPlayerMoney(curPlayerId(), p.price >> 1); // halfcost
-                                toggleMortgage(p.id);
-                              }}
-                            />
-                          )}
-                          <SellButton
+                {p.price && (
+                  <>
+                    <p>rent = ${p.rent}</p>
+                    {p.ownedby == curPlayerId() && (
+                      <>
+                        {p.mortgaged ? (
+                          <UnMortgageButton
+                            cost={p.price * 0.55}
+                            onClick={() => {
+                              toast.info(`Un-mortgaged ${p.name}`);
+                              addPlayerMoney(curPlayerId(), -p.price * 0.55); // mortgage cost + 10%
+                              toggleMortgage(p.id);
+                            }}
+                          ></UnMortgageButton>
+                        ) : (
+                          <MortgageButton
                             cost={p.price >> 1}
                             onClick={() => {
+                              toast.info(`Mortgaged ${p.name}`);
                               addPlayerMoney(curPlayerId(), p.price >> 1); // halfcost
-                              setPropOwner(p.id, -1);
+                              toggleMortgage(p.id);
                             }}
                           />
-                        </>
-                      )}
-                      {ind == curPlayer().pos && p.ownedby === -1 && (
-                        <BuyButton
-                          cost={p.price}
+                        )}
+                        <SellButton
+                          cost={p.price >> (p.mortgaged ? 2 : 1)}
                           onClick={() => {
-                            addPlayerMoney(curPlayerId(), -p.price);
-                            setPropOwner(p.id, curPlayerId());
+                            addPlayerMoney(
+                              curPlayerId(),
+                              p.price >> (p.mortgaged ? 2 : 1)
+                            ); // halfcost
+                            setPropOwner(p.id, -1);
+                            // reset mortgage
+                            if (
+                              properties.filter((pr) => pr.id === p.id)[0]
+                                .mortgaged
+                            )
+                              toggleMortgage(p.id);
                           }}
                         />
-                      )}
-                    </>
-                  )}
-                  {players
-                    .filter((pl) => pl.pos === ind)
-                    .map((pl) => (
-                      <Player name={pl.name} color={pl.color} />
-                    ))}
-                  <br></br>
-                </div>
-              </>
+                      </>
+                    )}
+                    {ind == curPlayer().pos && p.ownedby === -1 && (
+                      <BuyButton
+                        cost={p.price}
+                        onClick={() => {
+                          addPlayerMoney(curPlayerId(), -p.price);
+                          setPropOwner(p.id, curPlayerId());
+                        }}
+                      />
+                    )}
+                  </>
+                )}
+                {players
+                  .filter((pl) => pl.pos === ind)
+                  .map((pl) => (
+                    <Player name={pl.name} color={pl.color} />
+                  ))}
+                <br></br>
+              </div>
             ))}
         </div>
       </main>
