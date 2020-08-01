@@ -8,7 +8,8 @@ import { ToastContainer, toast } from "react-toastify";
 
 const pickRandElem = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const sleep = (millis) => new Promise((resolve) => setTimeout(resolve, millis));
-
+const getRoll = () =>
+  Math.floor(Math.random() * 6) + Math.floor(Math.random() * 6) + 2;
 const MortgageButton = ({ cost, onClick }) => (
   <button onClick={onClick}>Mortgage, receive ${cost}</button>
 );
@@ -112,6 +113,28 @@ export default function Home() {
       landedOn.ownedby !== curPlayerId()
     ) {
       let actualRent = calcRent(landedOn);
+      // railroads
+      if (landedOn.group === "Railroad") {
+        let numOwned = properties.filter(
+          (p) =>
+            p.ownedby === landedOn.ownedby &&
+            p.group === "Railroad" &&
+            !p.mortgaged
+        ).length;
+        actualRent = numOwned * 25;
+      }
+      if (landedOn.group === "Utilities") {
+        let numOwned = properties.filter(
+          (p) =>
+            p.ownedby === landedOn.ownedby &&
+            p.group === "Utilities" &&
+            !p.mortgaged
+        ).length;
+        actualRent = getRoll() * 4; // roll * 4
+        if (numOwned == 2) {
+          actualRent *= 2.5; // roll * 10
+        }
+      }
       // auto pay rent
       addPlayerMoney(curPlayerId(), -actualRent);
       console.log(landedOn);
@@ -140,7 +163,7 @@ export default function Home() {
             addPlayerMoney(curPlayerId(), 200);
             toast("Passed Go, collected $200");
           }
-          setPlayerPos(curPlayerId, newPos);
+          setPlayerPos(curPlayerId(), newPos);
           // pay owner if necessary
           const landedOn = properties.filter(
             (pr) =>
@@ -235,10 +258,7 @@ export default function Home() {
             <button
               onClick={async () => {
                 setHasRolled(true);
-                let roll =
-                  Math.floor(Math.random() * 6) +
-                  Math.floor(Math.random() * 6) +
-                  1;
+                let roll = getRoll();
                 toast("rolled a " + roll);
                 for (let i = 0; i < roll; i++) {
                   setPlayerPos(curPlayerId(), curPlayer().pos + 1);
