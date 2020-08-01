@@ -135,7 +135,7 @@ export default function Home() {
       case "chance":
         return () => {
           let card = pickRandElem(chance);
-          toast(card.title);
+          toast.info(card.title);
           evaluateCard(card);
         };
         break;
@@ -145,7 +145,7 @@ export default function Home() {
       case "communitychest":
         return () => {
           let card = pickRandElem(communitychest);
-          toast(card.title);
+          toast.info(card.title);
           evaluateCard(card);
         };
         break;
@@ -235,7 +235,6 @@ export default function Home() {
                     pr.id ===
                     tiles.filter((t, ind) => ind === curPlayer().pos)[0].id
                 )[0];
-                console.log(landedOn);
                 if (
                   landedOn.ownedby &&
                   landedOn.ownedby !== -1 &&
@@ -254,9 +253,8 @@ export default function Home() {
 
                 if (landedOn.group === "Special") {
                   // auto do special action
-                  specialActions(landedOn);
+                  specialActions(landedOn)();
                 }
-                console.log(players, turn);
               }}
             >
               Roll
