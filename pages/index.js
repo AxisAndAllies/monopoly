@@ -7,14 +7,22 @@ import { ToastContainer, toast } from "react-toastify";
 const pickRandElem = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const sleep = (millis) => new Promise((resolve) => setTimeout(resolve, millis));
 
+const MortgageButton = ({ cost, onClick }) => (
+  <button onClick={onClick}>Mortgage, receive ${cost}</button>
+);
+const UnMortgageButton = ({ cost, onClick }) => (
+  <button onClick={onClick}>
+    Un-mortgage, pay ${Math.round(cost * 100) / 100}
+  </button>
+);
 const BuyButton = ({ cost, onClick }) => (
   <button onClick={onClick}>Buy for ${cost}</button>
 );
 const SellButton = ({ cost, onClick }) => (
   <button onClick={onClick}>Sell for ${cost >> 1}</button>
 );
-const ActionButton = ({ descript, action }) =>
-  action ? <button onClick={action}>{descript}</button> : null;
+// const ActionButton = ({ descript, action }) =>
+//   action ? <button onClick={action}>{descript}</button> : null;
 
 const Player = ({ name, color }) => (
   <label
@@ -66,6 +74,12 @@ export default function Home() {
   const setPropOwner = (propId, ownerId) => {
     let newprops = [...properties];
     newprops.filter((pr) => pr.id === propId)[0].ownedby = ownerId;
+    setProperties(newprops);
+  };
+  const toggleMortgage = (propId) => {
+    let newprops = [...properties];
+    let pr = newprops.filter((pr) => pr.id === propId)[0];
+    newprops.filter((pr) => pr.id === propId)[0].mortgaged = !pr.mortgaged;
     setProperties(newprops);
   };
 
@@ -156,31 +170,6 @@ export default function Home() {
         return null;
         break;
     }
-  };
-
-  const MoneyButtons = (p) => {
-    // if (!p.ownedby) return null;
-    // return null;
-    if (p.ownedby == curPlayerId()) {
-      return (
-        <SellButton
-          cost={p.price}
-          onClick={() => {
-            addPlayerMoney(curPlayerId(), p.price >> 1); // halfcost
-            setPropOwner(p.id, -1);
-          }}
-        />
-      );
-    }
-    return p.ownedby === -1 ? (
-      <BuyButton
-        cost={p.price}
-        onClick={() => {
-          addPlayerMoney(curPlayerId(), -p.price);
-          setPropOwner(p.id, curPlayerId());
-        }}
-      />
-    ) : null;
   };
 
   return (
@@ -284,17 +273,56 @@ export default function Home() {
                   style={{
                     borderColor: players.filter((pl) => pl.id == p.ownedby)[0]
                       ?.color,
+                    backgroundColor: p.mortgaged ? "#ccc" : "#eaeaea",
                   }}
                 >
                   <p>{p.name}</p>
 
-                  <p>{p.mortgaged && "***Mortgaged"}</p>
+                  <label>{p.mortgaged && "(mortgaged)"}</label>
                   {p.buildings ? <p>Buildings: {p.buildings}</p> : null}
 
                   {p.price && (
                     <>
                       <p>rent = ${p.rent}</p>
-                      {ind == curPlayer().pos && MoneyButtons(p)}
+                      {p.ownedby == curPlayerId() && (
+                        <>
+                          {p.mortgaged ? (
+                            <UnMortgageButton
+                              cost={p.price * 0.55}
+                              onClick={() => {
+                                toast.info(`Un-mortgaged ${p.name}`);
+                                addPlayerMoney(curPlayerId(), -p.price * 0.55); // mortgage cost + 10%
+                                toggleMortgage(p.id);
+                              }}
+                            ></UnMortgageButton>
+                          ) : (
+                            <MortgageButton
+                              cost={p.price >> 1}
+                              onClick={() => {
+                                toast.info(`Mortgaged ${p.name}`);
+                                addPlayerMoney(curPlayerId(), p.price >> 1); // halfcost
+                                toggleMortgage(p.id);
+                              }}
+                            />
+                          )}
+                          <SellButton
+                            cost={p.price >> 1}
+                            onClick={() => {
+                              addPlayerMoney(curPlayerId(), p.price >> 1); // halfcost
+                              setPropOwner(p.id, -1);
+                            }}
+                          />
+                        </>
+                      )}
+                      {ind == curPlayer().pos && p.ownedby === -1 && (
+                        <BuyButton
+                          cost={p.price}
+                          onClick={() => {
+                            addPlayerMoney(curPlayerId(), -p.price);
+                            setPropOwner(p.id, curPlayerId());
+                          }}
+                        />
+                      )}
                     </>
                   )}
                   {players
