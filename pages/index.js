@@ -106,6 +106,11 @@ export default function Home() {
     setProperties(newprops);
   };
 
+  const ownsEntireActiveGroup = (group, playerId) =>
+    properties
+      .filter((p) => p.group === group)
+      .every((p) => !p.mortgaged && p.ownedby == playerId);
+
   const checkAndPayRent = (landedOn) => {
     if (
       landedOn.ownedby &&
@@ -345,14 +350,12 @@ export default function Home() {
                       </>
                     ) : null}
                     {p.name}
+                    {/* <label>{p.mortgaged && "(mortgaged)"}</label> */}
                   </p>
-
-                  <label>{p.mortgaged && "(mortgaged)"}</label>
-                  {p.buildings ? <p>Buildings: {p.buildings}</p> : null}
 
                   {p.price && (
                     <>
-                      <p>rent = ${calcRent(p)}</p>
+                      <label>rent = ${calcRent(p)}</label>
                       {p.ownedby == curPlayerId() && (
                         <>
                           {p.mortgaged ? (
@@ -365,16 +368,23 @@ export default function Home() {
                               }}
                             />
                           ) : (
-                            <MortgageButton
-                              cost={p.price >> 1}
-                              onClick={() => {
-                                toast.info(`Mortgaged ${p.name}`);
-                                addPlayerMoney(curPlayerId(), p.price >> 1); // halfcost
-                                toggleMortgage(p.id);
-                              }}
-                            />
+                            <>
+                              {(!p.buildings || p.buildings == 0) && (
+                                <MortgageButton
+                                  cost={p.price >> 1}
+                                  onClick={() => {
+                                    toast.info(`Mortgaged ${p.name}`);
+                                    addPlayerMoney(curPlayerId(), p.price >> 1); // halfcost
+                                    toggleMortgage(p.id);
+                                  }}
+                                />
+                              )}
+                            </>
                           )}
-                          {p.buildings != undefined && p.buildings < 5 ? (
+                          {!p.mortgaged &&
+                          ownsEntireActiveGroup(p.group, curPlayerId()) &&
+                          p.buildings != undefined &&
+                          p.buildings < 5 ? (
                             <BuyBuildingButton
                               cost={p.housecost}
                               onClick={() => {
@@ -394,22 +404,24 @@ export default function Home() {
                               }}
                             />
                           ) : null}
-                          <SellButton
-                            cost={p.price >> (p.mortgaged ? 2 : 1)}
-                            onClick={() => {
-                              addPlayerMoney(
-                                curPlayerId(),
-                                p.price >> (p.mortgaged ? 2 : 1)
-                              ); // halfcost
-                              setPropOwner(p.id, -1);
-                              // reset mortgage
-                              if (
-                                properties.filter((pr) => pr.id === p.id)[0]
-                                  .mortgaged
-                              )
-                                toggleMortgage(p.id);
-                            }}
-                          />
+                          {p.buildings == 0 && (
+                            <SellButton
+                              cost={p.price >> (p.mortgaged ? 2 : 1)}
+                              onClick={() => {
+                                addPlayerMoney(
+                                  curPlayerId(),
+                                  p.price >> (p.mortgaged ? 2 : 1)
+                                ); // halfcost
+                                setPropOwner(p.id, -1);
+                                // reset mortgage
+                                if (
+                                  properties.filter((pr) => pr.id === p.id)[0]
+                                    .mortgaged
+                                )
+                                  toggleMortgage(p.id);
+                              }}
+                            />
+                          )}
                         </>
                       )}
                       {ind == curPlayer().pos && p.ownedby === -1 && (
