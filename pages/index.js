@@ -7,32 +7,26 @@ import { ToastContainer, toast } from "react-toastify";
 const pickRandElem = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const sleep = (millis) => new Promise((resolve) => setTimeout(resolve, millis));
 
-const BuyButton = ({ cost, onClick }) => {
-  // console.log(cost);
-  return <button onClick={onClick}>Buy for ${cost}</button>;
-};
-const SellButton = ({ cost, onClick }) => {
-  // console.log(cost);
-  return <button onClick={onClick}>Sell for ${cost >> 1}</button>;
-};
+const BuyButton = ({ cost, onClick }) => (
+  <button onClick={onClick}>Buy for ${cost}</button>
+);
+const SellButton = ({ cost, onClick }) => (
+  <button onClick={onClick}>Sell for ${cost >> 1}</button>
+);
+const ActionButton = ({ descript, action }) =>
+  action ? <button onClick={action}>{descript}</button> : null;
 
-const ActionButton = ({ descript, action }) => {
-  // console.log(descript);
-  return action ? <button onClick={action}>{descript}</button> : null;
-};
-const Player = ({ name, color }) => {
-  return (
-    <label
-      style={{
-        "background-color": color,
-        padding: "0.4em",
-        fontSize: ".8em",
-      }}
-    >
-      {JSON.stringify(name)}
-    </label>
-  );
-};
+const Player = ({ name, color }) => (
+  <label
+    style={{
+      "background-color": color,
+      padding: "0.4em",
+      fontSize: ".8em",
+    }}
+  >
+    {JSON.stringify(name)}
+  </label>
+);
 export default function Home() {
   const { tiles, chance, communitychest } = Monopoly;
   const [properties, setProperties] = useState(Monopoly.properties);
@@ -76,51 +70,56 @@ export default function Home() {
   };
 
   const evaluateCard = (card) => {
-    if (card.movenearest) {
-      //pass
-    }
-    if (card.move) {
-      if (card.tileid) {
-        setPlayerPos(
-          curPlayerId,
-          properties.filter((p) => p.id == card.tileid)[0].position
-        );
-        // TODO: handle payment...
-      }
-      if (card.groupid) {
-        setPlayerPos(
-          curPlayerId,
-          properties.filter((p) => p.id == card.tileid)[0].position
-        );
-        // TODO: handle payment...
-      }
-      if (card.count) {
-        setPlayerPos(curPlayerId(), curPlayer().pos + count);
-      }
-    }
-    if (card.addfunds) {
-      addPlayerMoney(curPlayerId(), card.amount);
-    }
-    if (card.removefunds) {
-      addPlayerMoney(curPlayerId(), -card.amount);
-    }
-    if (card.removefundstoplayers) {
-      //
-    }
-    if (card.propertycharges) {
-      //
-    }
-    if (card.jail) {
-      if (card.subaction === "goto") {
-        setPlayerPos(curPlayerId(), 10);
-      }
-      if (card.subaction === "getout") {
+    console.log(card);
+    switch (card.action) {
+      case "movenearest":
+        //pass
+        break;
+      case "move":
+        if (card.tileid) {
+          setPlayerPos(
+            curPlayerId,
+            properties.filter((p) => p.id == card.tileid)[0].position
+          );
+          // TODO: handle payment...
+        }
+        if (card.groupid) {
+          setPlayerPos(
+            curPlayerId,
+            properties.filter((p) => p.id == card.tileid)[0].position
+          );
+          // TODO: handle payment...
+        }
+        if (card.count) {
+          setPlayerPos(curPlayerId(), curPlayer().pos + count);
+        }
+        break;
+      case "addfunds":
+        addPlayerMoney(curPlayerId(), card.amount);
+        break;
+      case "removefunds":
+        addPlayerMoney(curPlayerId(), -card.amount);
+        break;
+      case "removefundstoplayers":
         //
-      }
-    }
-    if (card.addfundsfromplayers) {
-      // add to you
-      // subtract from players
+        break;
+      case "propertycharges":
+        //
+        break;
+      case "jail":
+        if (card.subaction === "goto") {
+          setPlayerPos(curPlayerId(), 10);
+        }
+        if (card.subaction === "getout") {
+          //
+        }
+        break;
+      case "addfundsfromplayers":
+        // add to you
+        // subtract from players
+        break;
+      default:
+        throw Error("unhandled case");
     }
   };
 
@@ -173,15 +172,7 @@ export default function Home() {
         />
       );
     }
-    return p.ownedby !== -1 ? (
-      <ActionButton
-        descript={`Pay Rent (${p.rent})`}
-        action={() => {
-          addPlayerMoney(curPlayerId(), -p.rent);
-          addPlayerMoney(p.ownedby, rent);
-        }}
-      />
-    ) : (
+    return p.ownedby === -1 ? (
       <BuyButton
         cost={p.price}
         onClick={() => {
@@ -189,7 +180,7 @@ export default function Home() {
           setPropOwner(p.id, curPlayerId());
         }}
       />
-    );
+    ) : null;
   };
 
   return (
@@ -236,8 +227,34 @@ export default function Home() {
                 }
                 if (curPlayer().pos === 0) {
                   // pass go
-                  toast("Passed Go, collected $200");
                   addPlayerMoney(curPlayerId(), 200);
+                  toast("Passed Go, collected $200");
+                }
+                const landedOn = properties.filter(
+                  (pr) =>
+                    pr.id ===
+                    tiles.filter((t, ind) => ind === curPlayer().pos)[0].id
+                )[0];
+                console.log(landedOn);
+                if (
+                  landedOn.ownedby &&
+                  landedOn.ownedby !== -1 &&
+                  landedOn.ownedby !== curPlayerId()
+                ) {
+                  // auto pay rent
+                  addPlayerMoney(curPlayerId(), -landedOn.rent);
+                  console.log(landedOn);
+                  addPlayerMoney(landedOn.ownedby, landedOn.rent);
+                  toast(
+                    `Paid ${landedOn.rent} to ${
+                      players.filter((pl) => pl.id === landedOn.ownedby)[0].name
+                    }`
+                  );
+                }
+
+                if (landedOn.group === "Special") {
+                  // auto do special action
+                  specialActions(landedOn);
                 }
                 console.log(players, turn);
               }}
@@ -267,9 +284,8 @@ export default function Home() {
                 <div
                   className={styles.card}
                   style={{
-                    "border-color": players.filter(
-                      (pl) => pl.id == p.ownedby
-                    )[0]?.color,
+                    borderColor: players.filter((pl) => pl.id == p.ownedby)[0]
+                      ?.color,
                   }}
                 >
                   <p>{p.name}</p>
@@ -289,18 +305,6 @@ export default function Home() {
                       <Player name={pl.name} color={pl.color} />
                     ))}
                   <br></br>
-                  {p.group === "Special" && (
-                    // && curPlayer().pos === ind
-                    <ActionButton
-                      descript={(() => {
-                        if (p.id === "chance" || p.id === "community chest") {
-                          return "Draw";
-                        }
-                        return "special action";
-                      })()}
-                      action={specialActions(p)}
-                    />
-                  )}
                 </div>
               </>
             ))}
