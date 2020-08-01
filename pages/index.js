@@ -5,22 +5,6 @@ import { useState } from "react";
 
 const pickRandElem = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-const DiceButton = () => {
-  const [val, setVal] = useState(6);
-  return (
-    <button
-      onClick={() => {
-        setVal(
-          Math.floor(Math.random() * 6) + Math.floor(Math.random() * 6) + 1
-        );
-        console.log("rolled", val);
-      }}
-    >
-      Roll Dice ({val})
-    </button>
-  );
-};
-
 const BuyButton = ({ cost, onClick }) => {
   // console.log(cost);
   return <button onClick={onClick}>Buy for ${cost}</button>;
@@ -32,93 +16,117 @@ const ActionButton = ({ descript, action }) => {
 };
 
 export default function Home() {
-  let { properties, tiles, chance, communitychest } = Monopoly;
-  let [players, setPlayers] = useState([
+  const { properties, tiles, chance, communitychest } = Monopoly;
+  const [players, setPlayers] = useState([
     {
-      name: "bob",
+      name: "Bob",
       money: 1500,
       pos: 0,
+      id: "bob",
     },
     {
-      name: "sally",
+      name: "Sally",
       money: 1500,
       pos: 0,
+      id: "sally",
     },
   ]);
   let [turn, setTurn] = useState(0);
 
-  let curPlayerId = () => players[turn].id;
-  let addPlayerMoney = (id, amount) => {
-    newPlayers = [...players];
-    players[id].money += amount;
+  const curPlayer = () => players[turn];
+  const curPlayerId = () => players[turn].id;
+
+  const addPlayerMoney = (id, amount) => {
+    let newPlayers = [...players];
+    players.filter((p) => p.id == id)[0].money += amount;
     setPlayers(newPlayers);
   };
-  let setPlayerPos = (id, pos) => {
-    newPlayers = [...players];
-    players[id].pos = pos;
+  const setPlayerPos = (id, pos) => {
+    let newPlayers = [...players];
+    players.filter((p) => p.id == id)[0].pos = pos % tiles.length;
     setPlayers(newPlayers);
+  };
+
+  const evaluateCard = (card) => {
+    if (card.movenearest) {
+      //pass
+    }
+    if (card.move) {
+      if (card.tileid) {
+        setPlayerPos(
+          curPlayerId,
+          properties.filter((p) => p.id == card.tileid)[0].position
+        );
+        // TODO: handle payment...
+      }
+      if (card.groupid) {
+        setPlayerPos(
+          curPlayerId,
+          properties.filter((p) => p.id == card.tileid)[0].position
+        );
+        // TODO: handle payment...
+      }
+      if (card.count) {
+        setPlayerPos(curPlayerId(), curPlayer().pos + count);
+      }
+    }
+    if (card.addfunds) {
+      addPlayerMoney(curPlayerId(), card.amount);
+    }
+    if (card.removefunds) {
+      addPlayerMoney(curPlayerId(), -card.amount);
+    }
+    if (card.removefundstoplayers) {
+      //
+    }
+    if (card.propertycharges) {
+      //
+    }
+    if (card.jail) {
+      if (card.subaction === "goto") {
+        setPlayerPos(curPlayerId(), 10);
+      }
+      if (card.subaction === "getout") {
+        //
+      }
+    }
+    if (card.addfundsfromplayers) {
+      // add to you
+      // subtract from players
+    }
   };
 
   const specialActions = (p) => {
     () => {
       switch (p.id) {
         case "go":
-          return () => addPlayerMoney(curPlayerId, 200);
+          return () => addPlayerMoney(curPlayerId(), 200);
           break;
         case "jail":
-          return () => setPlayerPos(curPlayerId, 10);
+          return () => setPlayerPos(curPlayerId(), 10);
           break;
         case "chance":
           return () => {
             let card = pickRandElem(chance);
+            alert(card.title);
+            evaluateCard(card);
           };
           break;
         case "freeparking":
-          return () => setPlayerPos(curPlayerId, 10);
+          return () => setPlayerPos(curPlayerId(), 20);
           break;
         case "communitychest":
           return () => {
             let card = pickRandElem(communitychest);
-            if (card.tileid) {
-              setPlayerPos(
-                curPlayerId,
-                properties.filter((p) => p.id == card.tileid)[0].position
-              );
-            }
-            if (card.movenearest) {
-              //pass
-            }
-            if (card.move) {
-              //
-            }
-            if (card.addfunds) {
-              addPlayerMoney(curPlayerId, card.amount);
-            }
-            if (card.removefunds) {
-              addPlayerMoney(curPlayerId, -card.amount);
-            }
-            if (card.removefundstoplayers) {
-              //
-            }
-            if (card.propertycharges) {
-              //
-            }
-            if (card.jail) {
-              if (card.subaction === "goto") {
-              }
-              if (card.subaction === "getout") {
-                //
-              }
-            }
-            if (card.addfundsfromplayers) {
-            }
+            alert(card.title);
+            evaluateCard(card);
           };
           break;
         case "gotojail":
-          return () => setPlayerPos(curPlayerId, 10);
+          return () => setPlayerPos(curPlayerId(), 10);
           break;
         case "luxurytax":
-          return () => setPlayerPos(curPlayerId, 10);
+          return () => addPlayerMoney(curPlayerId(), -75);
           break;
       }
     };
@@ -135,8 +143,20 @@ export default function Home() {
         <h1 className={styles.title}>Monopoly</h1>
 
         <p className={styles.description}>
-          {/* Roll Dice */}
-          <DiceButton />
+          <p>{curPlayer().name}'s turn</p>
+          <button
+            onClick={() => {
+              let roll =
+                Math.floor(Math.random() * 6) +
+                Math.floor(Math.random() * 6) +
+                1;
+              alert("rolled a " + roll);
+              setPlayerPos(curPlayerId(), curPlayer().pos + roll);
+              console.log(players);
+            }}
+          >
+            Roll
+          </button>
           <button
             onClick={() => {
               setTurn((turn) => (turn + 1) % players.length);

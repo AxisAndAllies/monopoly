@@ -659,7 +659,7 @@ const Monopoly = {
     },
     {
       name: "Luxury Tax",
-      id: "luxerytax",
+      id: "luxurytax",
       group: "Special",
       averageProbability: 2.116,
     },
@@ -703,7 +703,7 @@ const Monopoly = {
     { id: "shortlinerailroad" },
     { id: "chance" },
     { id: "parkplace" },
-    { id: "luxerytax" },
+    { id: "luxurytax" },
     { id: "boardwalk" },
   ],
   chance: [
