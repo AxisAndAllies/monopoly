@@ -11,16 +11,20 @@ const BuyButton = ({ cost, onClick }) => {
   // console.log(cost);
   return <button onClick={onClick}>Buy for ${cost}</button>;
 };
+const SellButton = ({ cost, onClick }) => {
+  // console.log(cost);
+  return <button onClick={onClick}>Sell for ${cost >> 1}</button>;
+};
 
 const ActionButton = ({ descript, action }) => {
   // console.log(descript);
   return action ? <button onClick={action}>{descript}</button> : null;
 };
-const Player = ({ name }) => {
+const Player = ({ name, color }) => {
   return (
     <label
       style={{
-        "background-color": "lightcoral",
+        "background-color": color,
         padding: "0.4em",
         fontSize: ".8em",
       }}
@@ -30,22 +34,26 @@ const Player = ({ name }) => {
   );
 };
 export default function Home() {
-  const { properties, tiles, chance, communitychest } = Monopoly;
+  const { tiles, chance, communitychest } = Monopoly;
+  const [properties, setProperties] = useState(Monopoly.properties);
   const [players, setPlayers] = useState([
     {
       name: "Bob",
       money: 1500,
       pos: 0,
       id: "bob",
+      color: "lightcoral",
     },
     {
       name: "Alice",
       money: 1500,
       pos: 0,
-      id: "sally",
+      id: "alice",
+      color: "mediumseagreen",
     },
   ]);
   let [turn, setTurn] = useState(0);
+  let [hasRolled, setHasRolled] = useState(false);
 
   const curPlayer = () => players[turn];
   const curPlayerId = () => players[turn].id;
@@ -59,6 +67,12 @@ export default function Home() {
     let newPlayers = [...players];
     players.filter((p) => p.id == id)[0].pos = pos % tiles.length;
     setPlayers(newPlayers);
+  };
+
+  const setPropOwner = (propId, ownerId) => {
+    let newprops = [...properties];
+    newprops.filter((pr) => pr.id === propId)[0].ownedby = ownerId;
+    setProperties(newprops);
   };
 
   const evaluateCard = (card) => {
@@ -142,28 +156,37 @@ export default function Home() {
       case "luxurytax":
         return null;
         break;
-      // default:
-      //   toast("darn");
-      //   break;
     }
   };
 
   const MoneyButtons = (p) => {
-    console.log(p, "hi");
-    if (!p.ownedby || p.ownedby !== -1) return null;
+    // if (!p.ownedby) return null;
     // return null;
-    return p.ownedby !== curPlayerId() ? (
+    if (p.ownedby == curPlayerId()) {
+      return (
+        <SellButton
+          cost={p.price}
+          onClick={() => {
+            addPlayerMoney(curPlayerId(), p.price >> 1); // halfcost
+            setPropOwner(p.id, -1);
+          }}
+        />
+      );
+    }
+    return p.ownedby !== -1 ? (
       <ActionButton
         descript={`Pay Rent (${p.rent})`}
         action={() => {
-          //pass
+          addPlayerMoney(curPlayerId(), -p.rent);
+          addPlayerMoney(p.ownedby, rent);
         }}
       />
     ) : (
       <BuyButton
         cost={p.price}
         onClick={() => {
-          setPlayers(p.price);
+          addPlayerMoney(curPlayerId(), -p.price);
+          setPropOwner(p.id, curPlayerId());
         }}
       />
     );
@@ -183,50 +206,56 @@ export default function Home() {
           <p>
             {curPlayer().name}'s turn (${curPlayer().money})
           </p>
-          <button
-            onClick={async () => {
-              let roll =
-                Math.floor(Math.random() * 6) +
-                Math.floor(Math.random() * 6) +
-                1;
-              toast("rolled a " + roll);
-              for (let i = 0; i < roll; i++) {
-                setPlayerPos(curPlayerId(), curPlayer().pos + 1);
-                await sleep(250);
-              }
-              if (curPlayer().pos === 30) {
-                //gotojail
-                toast("Go to jail!");
-                setPlayerPos(curPlayerId(), 10);
-              }
-              if (curPlayer().pos === 38) {
-                // pay luxury tax
-                toast("Pay luxury tax ($75)");
-                addPlayerMoney(curPlayerId(), -75);
-              }
-              if (curPlayer().pos === 4) {
-                // pay income tax
-                // 200 or $10% of assets
-                // toast("Pay income tax ($...)");
-              }
-              if (curPlayer().pos === 0) {
-                // pass go
-                toast("Collected $200");
-                addPlayerMoney(curPlayerId(), 200);
-              }
-              console.log(players, turn);
-            }}
-          >
-            Roll
-          </button>
-          <button
-            onClick={() => {
-              setTurn((turn) => (turn + 1) % players.length);
-              toast("Ended turn.");
-            }}
-          >
-            Next Turn
-          </button>
+          {!hasRolled && (
+            <button
+              onClick={async () => {
+                setHasRolled(true);
+                let roll =
+                  Math.floor(Math.random() * 6) +
+                  Math.floor(Math.random() * 6) +
+                  1;
+                toast("rolled a " + roll);
+                for (let i = 0; i < roll; i++) {
+                  setPlayerPos(curPlayerId(), curPlayer().pos + 1);
+                  await sleep(250);
+                }
+                if (curPlayer().pos === 30) {
+                  //gotojail
+                  toast("Go to jail!");
+                  setPlayerPos(curPlayerId(), 10);
+                }
+                if (curPlayer().pos === 38) {
+                  // pay luxury tax
+                  toast("Pay luxury tax ($75)");
+                  addPlayerMoney(curPlayerId(), -75);
+                }
+                if (curPlayer().pos === 4) {
+                  // pay income tax
+                  // 200 or $10% of assets
+                  // toast("Pay income tax ($...)");
+                }
+                if (curPlayer().pos === 0) {
+                  // pass go
+                  toast("Passed Go, collected $200");
+                  addPlayerMoney(curPlayerId(), 200);
+                }
+                console.log(players, turn);
+              }}
+            >
+              Roll
+            </button>
+          )}
+          {hasRolled && (
+            <button
+              onClick={() => {
+                setTurn((turn) => (turn + 1) % players.length);
+                toast("Ended turn.");
+                setHasRolled(false);
+              }}
+            >
+              End Turn
+            </button>
+          )}
         </p>
 
         <div className={styles.grid}>
@@ -235,27 +264,29 @@ export default function Home() {
             // .sort((a, b) => a.position - b.position)
             .map((p, ind) => (
               <>
-                <div className={styles.card}>
+                <div
+                  className={styles.card}
+                  style={{
+                    "border-color": players.filter(
+                      (pl) => pl.id == p.ownedby
+                    )[0]?.color,
+                  }}
+                >
                   <p>{p.name}</p>
 
                   <p>{p.mortgaged && "***Mortgaged"}</p>
-                  <p>
-                    {p.ownedby &&
-                      p.ownedby !== -1 &&
-                      `***owned by ${p.ownedby}`}
-                  </p>
                   {p.buildings ? <p>Buildings: {p.buildings}</p> : null}
 
                   {p.price && (
                     <>
                       <p>rent = ${p.rent}</p>
-                      {ind === curPlayer().pos && MoneyButtons(p)}
+                      {ind == curPlayer().pos && MoneyButtons(p)}
                     </>
                   )}
                   {players
                     .filter((pl) => pl.pos === ind)
                     .map((pl) => (
-                      <Player name={pl.name} />
+                      <Player name={pl.name} color={pl.color} />
                     ))}
                   <br></br>
                   {p.group === "Special" && (

@@ -9,4 +9,4 @@ TODO:
   - buy
   - sell
   - collect rent
-- add bidding support when anyone lands on property
+- add bidding support when anyone lands on property?
