@@ -1,3 +1,5 @@
+//@ts-check
+
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
 import Monopoly from "../assets/monopoly";
@@ -21,8 +23,22 @@ const BuyButton = ({ cost, onClick }) => (
 const SellButton = ({ cost, onClick }) => (
   <button onClick={onClick}>Sell for ${cost}</button>
 );
+const BuyBuildingButton = ({ cost, onClick }) => (
+  <button onClick={onClick}>Buy 1 building for ${cost}</button>
+);
+const SellBuildingButton = ({ cost, onClick }) => (
+  <button onClick={onClick}>Sell 1 building for ${cost}</button>
+);
 // const ActionButton = ({ descript, action }) =>
 //   action ? <button onClick={action}>{descript}</button> : null;
+
+const calcRent = (property) => {
+  let rent = property.rent;
+  if (property.buildings) {
+    rent = property.multpliedrent[property.buildings - 1];
+  }
+  return rent;
+};
 
 const Player = ({ name, color }) => (
   <label
@@ -43,14 +59,14 @@ export default function Home() {
       name: "Bob",
       money: 1500,
       pos: 0,
-      id: "bob",
+      id: 200,
       color: "lightcoral",
     },
     {
       name: "Alice",
       money: 1500,
       pos: 0,
-      id: "alice",
+      id: 201,
       color: "mediumseagreen",
     },
   ]);
@@ -82,6 +98,12 @@ export default function Home() {
     newprops.filter((pr) => pr.id === propId)[0].mortgaged = !pr.mortgaged;
     setProperties(newprops);
   };
+  const addHouse = (propId, amount) => {
+    let newprops = [...properties];
+    let pr = newprops.filter((pr) => pr.id === propId)[0];
+    newprops.filter((pr) => pr.id === propId)[0].buildings += amount;
+    setProperties(newprops);
+  };
 
   const evaluateCard = (card) => {
     console.log(card);
@@ -105,7 +127,7 @@ export default function Home() {
           // TODO: handle payment...
         }
         if (card.count) {
-          setPlayerPos(curPlayerId(), curPlayer().pos + count);
+          setPlayerPos(curPlayerId(), curPlayer().pos + card.count);
         }
         break;
       case "addfunds":
@@ -197,7 +219,7 @@ export default function Home() {
                 toast("rolled a " + roll);
                 for (let i = 0; i < roll; i++) {
                   setPlayerPos(curPlayerId(), curPlayer().pos + 1);
-                  await sleep(250);
+                  await sleep(200);
                 }
                 if (curPlayer().pos === 30) {
                   //gotojail
@@ -229,13 +251,14 @@ export default function Home() {
                   landedOn.ownedby !== -1 &&
                   landedOn.ownedby !== curPlayerId()
                 ) {
+                  let actualRent = calcRent(landedOn);
                   // auto pay rent
-                  addPlayerMoney(curPlayerId(), -landedOn.rent);
+                  addPlayerMoney(curPlayerId(), -actualRent);
                   console.log(landedOn);
-                  addPlayerMoney(landedOn.ownedby, landedOn.rent);
+                  addPlayerMoney(landedOn.ownedby, actualRent);
                   toast(
-                    `Paid ${landedOn.rent} to ${
-                      players.filter((pl) => pl.id === landedOn.ownedby)[0].name
+                    `Paid ${actualRent} to ${
+                      players.filter((pl) => pl.id == landedOn.ownedby)[0].name
                     }`
                   );
                 }
@@ -275,14 +298,24 @@ export default function Home() {
                   backgroundColor: p.mortgaged ? "#ccc" : "#eaeaea",
                 }}
               >
-                <p>{p.name}</p>
+                <p>
+                  {p.buildings !== undefined ? (
+                    <>
+                      <span style={{ backgroundColor: p.group }}>
+                        &nbsp;{"*".repeat(p.buildings || 0)}&nbsp;
+                      </span>
+                      &nbsp;&nbsp;
+                    </>
+                  ) : null}
+                  {p.name}
+                </p>
 
                 <label>{p.mortgaged && "(mortgaged)"}</label>
                 {p.buildings ? <p>Buildings: {p.buildings}</p> : null}
 
                 {p.price && (
                   <>
-                    <p>rent = ${p.rent}</p>
+                    <p>rent = ${calcRent(p)}</p>
                     {p.ownedby == curPlayerId() && (
                       <>
                         {p.mortgaged ? (
@@ -293,7 +326,7 @@ export default function Home() {
                               addPlayerMoney(curPlayerId(), -p.price * 0.55); // mortgage cost + 10%
                               toggleMortgage(p.id);
                             }}
-                          ></UnMortgageButton>
+                          />
                         ) : (
                           <MortgageButton
                             cost={p.price >> 1}
@@ -304,6 +337,26 @@ export default function Home() {
                             }}
                           />
                         )}
+                        {p.buildings != undefined && p.buildings < 5 ? (
+                          <BuyBuildingButton
+                            cost={p.housecost}
+                            onClick={() => {
+                              toast.info(`Bought 1 building on ${p.name}`);
+                              addPlayerMoney(curPlayerId(), -p.housecost);
+                              addHouse(p.id, 1);
+                            }}
+                          />
+                        ) : null}
+                        {p.buildings ? (
+                          <SellBuildingButton
+                            cost={p.housecost >> 1}
+                            onClick={() => {
+                              toast.info(`Sold 1 building on ${p.name}`);
+                              addPlayerMoney(curPlayerId(), p.housecost >> 1);
+                              addHouse(p.id, -1);
+                            }}
+                          />
+                        ) : null}
                         <SellButton
                           cost={p.price >> (p.mortgaged ? 2 : 1)}
                           onClick={() => {
@@ -333,6 +386,7 @@ export default function Home() {
                     )}
                   </>
                 )}
+                <br></br>
                 {players
                   .filter((pl) => pl.pos === ind)
                   .map((pl) => (

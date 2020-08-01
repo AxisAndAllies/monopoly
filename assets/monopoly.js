@@ -1,7 +1,7 @@
 const Monopoly = {
   properties: [
     {
-      name: "Mediterranean Avenue",
+      name: "Mediterranean Ave",
       id: "mediterraneanave",
       position: 2,
       price: 60,
@@ -14,7 +14,7 @@ const Monopoly = {
       mortgaged: false,
       probability: 2.1314,
       rel: {
-        Square: "Mediterranean Avenue",
+        Square: "Mediterranean Ave",
         "Probability % (Jail Short)": 2.1314,
         Rank: 36,
         "Probability % (Jail Long)": 2.0073,
@@ -24,7 +24,7 @@ const Monopoly = {
       averageProbability: 2.06935,
     },
     {
-      name: "Baltic Avenue",
+      name: "Baltic Ave",
       id: "balticave",
       position: 4,
       price: 60,
@@ -37,7 +37,7 @@ const Monopoly = {
       mortgaged: false,
       probability: 2.1624,
       rel: {
-        Square: "Baltic Avenue",
+        Square: "Baltic Ave",
         "Probability % (Jail Short)": 2.1624,
         Rank: 35,
         "Probability % (Jail Long)": 2.0369,
@@ -47,7 +47,7 @@ const Monopoly = {
       averageProbability: 2.09965,
     },
     {
-      name: "Oriental Avenue",
+      name: "Oriental Ave",
       id: "orientalave",
       position: 7,
       price: 100,
@@ -59,7 +59,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "Oriental Avenue",
+        Square: "Oriental Ave",
         "Probability % (Jail Short)": 2.2621,
         Rank: 32,
         "Probability % (Jail Long)": 2.1317,
@@ -69,7 +69,7 @@ const Monopoly = {
       averageProbability: 2.1969000000000003,
     },
     {
-      name: "Vermont Avenue",
+      name: "Vermont Ave",
       id: "vermontave",
       position: 9,
       price: 100,
@@ -81,7 +81,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "Vermont Avenue",
+        Square: "Vermont Ave",
         "Probability % (Jail Short)": 2.321,
         Rank: 28,
         "Probability % (Jail Long)": 2.1874,
@@ -91,7 +91,7 @@ const Monopoly = {
       averageProbability: 2.2542,
     },
     {
-      name: "Connecticut Avenue",
+      name: "Connecticut Ave",
       id: "connecticutave",
       position: 10,
       price: 120,
@@ -103,7 +103,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "Connecticut Avenue",
+        Square: "Connecticut Ave",
         "Probability % (Jail Short)": 2.3003,
         Rank: 30,
         "Probability % (Jail Long)": 2.168,
@@ -135,7 +135,7 @@ const Monopoly = {
       averageProbability: 2.62885,
     },
     {
-      name: "States Avenue",
+      name: "States Ave",
       id: "statesave",
       position: 14,
       price: 140,
@@ -147,7 +147,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "States Avenue",
+        Square: "States Ave",
         "Probability % (Jail Short)": 2.3721,
         Rank: 29,
         "Probability % (Jail Long)": 2.1741,
@@ -157,7 +157,7 @@ const Monopoly = {
       averageProbability: 2.2731000000000003,
     },
     {
-      name: "Virginia Avenue",
+      name: "Virginia Ave",
       id: "virginiaave",
       position: 15,
       price: 160,
@@ -169,7 +169,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "Virginia Avenue",
+        Square: "Virginia Ave",
         "Probability % (Jail Short)": 2.4649,
         Rank: 22,
         "Probability % (Jail Long)": 2.4255,
@@ -201,7 +201,7 @@ const Monopoly = {
       averageProbability: 2.7363,
     },
     {
-      name: "Tennessee Avenue",
+      name: "Tennessee Ave",
       id: "tennesseeave",
       position: 19,
       price: 180,
@@ -213,7 +213,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "Tennessee Avenue",
+        Square: "Tennessee Ave",
         "Probability % (Jail Short)": 2.9356,
         Rank: 6,
         "Probability % (Jail Long)": 2.821,
@@ -223,7 +223,7 @@ const Monopoly = {
       averageProbability: 2.8783000000000003,
     },
     {
-      name: "New York Avenue",
+      name: "New York Ave",
       id: "newyorkave",
       position: 20,
       price: 200,
@@ -235,7 +235,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "New York Avenue",
+        Square: "New York Ave",
         "Probability % (Jail Short)": 3.0852,
         Rank: 7,
         "Probability % (Jail Long)": 2.8118,
@@ -245,7 +245,7 @@ const Monopoly = {
       averageProbability: 2.9485,
     },
     {
-      name: "Kentucky Avenue",
+      name: "Kentucky Ave",
       id: "kentuckyave",
       position: 22,
       price: 220,
@@ -257,7 +257,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "Kentucky Avenue",
+        Square: "Kentucky Ave",
         "Probability % (Jail Short)": 2.8358,
         Rank: 12,
         "Probability % (Jail Long)": 2.6143,
@@ -267,7 +267,7 @@ const Monopoly = {
       averageProbability: 2.72505,
     },
     {
-      name: "Indiana Avenue",
+      name: "Indiana Ave",
       id: "indianaave",
       position: 24,
       price: 220,
@@ -279,7 +279,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "Indiana Avenue",
+        Square: "Indiana Ave",
         "Probability % (Jail Short)": 2.7357,
         Rank: 14,
         "Probability % (Jail Long)": 2.5671,
@@ -289,7 +289,7 @@ const Monopoly = {
       averageProbability: 2.6513999999999998,
     },
     {
-      name: "Illinois Avenue",
+      name: "Illinois Ave",
       id: "illinoisave",
       position: 25,
       price: 240,
@@ -301,7 +301,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "Illinois Avenue",
+        Square: "Illinois Ave",
         "Probability % (Jail Short)": 3.1858,
         Rank: 2,
         "Probability % (Jail Long)": 2.9929,
@@ -311,7 +311,7 @@ const Monopoly = {
       averageProbability: 3.08935,
     },
     {
-      name: "Atlantic Avenue",
+      name: "Atlantic Ave",
       id: "atlanticave",
       position: 27,
       price: 260,
@@ -323,7 +323,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "Atlantic Avenue",
+        Square: "Atlantic Ave",
         "Probability % (Jail Short)": 2.7072,
         Rank: 16,
         "Probability % (Jail Long)": 2.537,
@@ -333,7 +333,7 @@ const Monopoly = {
       averageProbability: 2.6220999999999997,
     },
     {
-      name: "Ventnor Avenue",
+      name: "Ventnor Ave",
       id: "ventnorave",
       position: 28,
       price: 260,
@@ -345,7 +345,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "Ventnor Avenue",
+        Square: "Ventnor Ave",
         "Probability % (Jail Short)": 2.6789,
         Rank: 18,
         "Probability % (Jail Long)": 2.5191,
@@ -377,7 +377,7 @@ const Monopoly = {
       averageProbability: 2.5121,
     },
     {
-      name: "Pacific Avenue",
+      name: "Pacific Ave",
       id: "pacificave",
       position: 32,
       price: 300,
@@ -389,7 +389,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "Pacific Avenue",
+        Square: "Pacific Ave",
         "Probability % (Jail Short)": 2.6774,
         Rank: 17,
         "Probability % (Jail Long)": 2.5236,
@@ -399,7 +399,7 @@ const Monopoly = {
       averageProbability: 2.6005000000000003,
     },
     {
-      name: "North Carolina Avenue",
+      name: "North Carolina Ave",
       id: "northcarolinaave",
       position: 33,
       price: 300,
@@ -411,7 +411,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "North Carolina Avenue",
+        Square: "North Carolina Ave",
         "Probability % (Jail Short)": 2.6252,
         Rank: 20,
         "Probability % (Jail Long)": 2.4721,
@@ -421,7 +421,7 @@ const Monopoly = {
       averageProbability: 2.5486500000000003,
     },
     {
-      name: "Pennsylvania Avenue",
+      name: "Pennsylvania Ave",
       id: "pennsylvaniaave",
       position: 35,
       price: 320,
@@ -433,7 +433,7 @@ const Monopoly = {
       buildings: 0,
       mortgaged: false,
       rel: {
-        Square: "Pennsylvania Avenue",
+        Square: "Pennsylvania Ave",
         "Probability % (Jail Short)": 2.5006,
         Rank: 23,
         "Probability % (Jail Long)": 2.3531,
@@ -713,7 +713,7 @@ const Monopoly = {
       tileid: "go",
     },
     {
-      title: "Advance to Illinois Avenue - If you pass Go, collect $200",
+      title: "Advance to Illinois Ave - If you pass Go, collect $200",
       action: "move",
       tileid: "illinoiseave",
     },
