@@ -5,6 +5,7 @@ import styles from "../styles/Home.module.css";
 import Monopoly from "../assets/monopoly";
 import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
+import Select from "react-select";
 
 const pickRandElem = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const sleep = (millis) => new Promise((resolve) => setTimeout(resolve, millis));
@@ -71,6 +72,7 @@ export default function Home() {
       color: "mediumseagreen",
     },
   ]);
+  const [trade, setTrade] = useState({ money: {}, properties: {} });
   let [turn, setTurn] = useState(0);
   let [hasRolled, setHasRolled] = useState(false);
 
@@ -244,14 +246,89 @@ export default function Home() {
         throw Error("unhandled case");
     }
   };
+  const settleTrade = () => {
+    toast.info(JSON.stringify(trade));
+
+    // reset
+    setTrade({ money: {}, properties: {} });
+    // only two person trade lol
+    let [{ id: a }, { id: b }] = players;
+    // trade money
+    if (trade.money[a]) {
+      addPlayerMoney(b, trade.money[a]);
+      addPlayerMoney(a, -trade.money[a]);
+    }
+    if (trade.money[b]) {
+      addPlayerMoney(a, trade.money[b]);
+      addPlayerMoney(b, -trade.money[b]);
+    }
+    // trade properties
+    (trade.properties[b] || []).forEach((e) => {
+      setPropOwner(e.value, a);
+    });
+    (trade.properties[a] || []).forEach((e) => {
+      setPropOwner(e.value, b);
+    });
+  };
 
   return (
     <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
+      <div
+        style={{
+          position: "fixed",
+          left: 0,
+          top: 0,
+          margin: "0.5rem",
+          padding: "1rem",
+          border: "1px solid #ccc",
+          borderRadius: "10px",
+          minWidth: "400px",
+        }}
+      >
+        <button
+          onClick={settleTrade}
+          disabled={
+            !Number.isInteger(
+              Object.values(trade.money)
+                .map((e) => parseInt(e))
+                .reduce((a, v) => a + v, 0)
+            )
+          }
+        >
+          Trade!
+        </button>
+        <>
+          {players.map((pl) => (
+            <div key={pl.id}>
+              <label>{pl.name}:</label>
+              <Select
+                onChange={(arr) => {
+                  let newTrade = { ...trade };
+                  newTrade.properties[pl.id] = arr;
+                  setTrade(newTrade);
+                }}
+                value={trade.properties[pl.id]}
+                options={properties
+                  .filter((pr) => pr.ownedby == pl.id && !pr.buildings)
+                  .map((pr) => ({ value: pr.id, label: pr.name }))}
+                isMulti={true}
+                isSearchable={true}
+              />
+              <input
+                type="number"
+                min={0}
+                max={pl.money}
+                value={trade.money[pl.id]}
+                onChange={(e) => {
+                  let newTrade = { ...trade };
+                  newTrade.money[pl.id] = parseInt(e.target.value);
+                  setTrade(newTrade);
+                }}
+              />
+            </div>
+          ))}
+        </>
+      </div>
       <main className={styles.main}>
         <h1 className={styles.title}>Monopoly</h1>
 
@@ -325,7 +402,7 @@ export default function Home() {
             .map((t) => properties.filter((p) => p.id == t.id)[0])
             // .sort((a, b) => a.position - b.position)
             .map((p, ind) => (
-              <div style={{ position: "relative" }}>
+              <div key={ind} style={{ position: "relative" }}>
                 <div style={{ position: "absolute" }}>
                   {players
                     .filter((pl) => pl.pos === ind)
