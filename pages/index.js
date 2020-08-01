@@ -236,7 +236,7 @@ export default function Home() {
                   // 200 or $10% of assets
                   // toast("Pay income tax ($...)");
                 }
-                if (curPlayer().pos === 0) {
+                if (curPlayer().pos - roll <= 0) {
                   // pass go
                   addPlayerMoney(curPlayerId(), 200);
                   toast("Passed Go, collected $200");
@@ -290,109 +290,113 @@ export default function Home() {
             .map((t) => properties.filter((p) => p.id == t.id)[0])
             // .sort((a, b) => a.position - b.position)
             .map((p, ind) => (
-              <div
-                className={styles.card}
-                style={{
-                  borderColor: players.filter((pl) => pl.id == p.ownedby)[0]
-                    ?.color,
-                  backgroundColor: p.mortgaged ? "#ccc" : "#eaeaea",
-                }}
-              >
-                <p>
-                  {p.buildings !== undefined ? (
-                    <>
-                      <span style={{ backgroundColor: p.group }}>
-                        &nbsp;{"*".repeat(p.buildings || 0)}&nbsp;
-                      </span>
-                      &nbsp;&nbsp;
-                    </>
-                  ) : null}
-                  {p.name}
-                </p>
-
-                <label>{p.mortgaged && "(mortgaged)"}</label>
-                {p.buildings ? <p>Buildings: {p.buildings}</p> : null}
-
-                {p.price && (
-                  <>
-                    <p>rent = ${calcRent(p)}</p>
-                    {p.ownedby == curPlayerId() && (
+              <div style={{ position: "relative" }}>
+                <div style={{ position: "absolute" }}>
+                  {players
+                    .filter((pl) => pl.pos === ind)
+                    .map((pl) => (
+                      <Player name={pl.name} color={pl.color} />
+                    ))}
+                </div>
+                <div
+                  className={styles.card}
+                  style={{
+                    borderColor: players.filter((pl) => pl.id == p.ownedby)[0]
+                      ?.color,
+                    borderWidth: p.ownedby ? 2 : 1,
+                    backgroundColor: p.mortgaged ? "#ccc" : "#eaeaea",
+                  }}
+                >
+                  <p>
+                    {p.buildings !== undefined ? (
                       <>
-                        {p.mortgaged ? (
-                          <UnMortgageButton
-                            cost={p.price * 0.55}
+                        <span style={{ backgroundColor: p.group }}>
+                          &nbsp;{"*".repeat(p.buildings || 0)}&nbsp;
+                        </span>
+                        &nbsp;&nbsp;
+                      </>
+                    ) : null}
+                    {p.name}
+                  </p>
+
+                  <label>{p.mortgaged && "(mortgaged)"}</label>
+                  {p.buildings ? <p>Buildings: {p.buildings}</p> : null}
+
+                  {p.price && (
+                    <>
+                      <p>rent = ${calcRent(p)}</p>
+                      {p.ownedby == curPlayerId() && (
+                        <>
+                          {p.mortgaged ? (
+                            <UnMortgageButton
+                              cost={p.price * 0.55}
+                              onClick={() => {
+                                toast.info(`Un-mortgaged ${p.name}`);
+                                addPlayerMoney(curPlayerId(), -p.price * 0.55); // mortgage cost + 10%
+                                toggleMortgage(p.id);
+                              }}
+                            />
+                          ) : (
+                            <MortgageButton
+                              cost={p.price >> 1}
+                              onClick={() => {
+                                toast.info(`Mortgaged ${p.name}`);
+                                addPlayerMoney(curPlayerId(), p.price >> 1); // halfcost
+                                toggleMortgage(p.id);
+                              }}
+                            />
+                          )}
+                          {p.buildings != undefined && p.buildings < 5 ? (
+                            <BuyBuildingButton
+                              cost={p.housecost}
+                              onClick={() => {
+                                toast.info(`Bought 1 building on ${p.name}`);
+                                addPlayerMoney(curPlayerId(), -p.housecost);
+                                addHouse(p.id, 1);
+                              }}
+                            />
+                          ) : null}
+                          {p.buildings ? (
+                            <SellBuildingButton
+                              cost={p.housecost >> 1}
+                              onClick={() => {
+                                toast.info(`Sold 1 building on ${p.name}`);
+                                addPlayerMoney(curPlayerId(), p.housecost >> 1);
+                                addHouse(p.id, -1);
+                              }}
+                            />
+                          ) : null}
+                          <SellButton
+                            cost={p.price >> (p.mortgaged ? 2 : 1)}
                             onClick={() => {
-                              toast.info(`Un-mortgaged ${p.name}`);
-                              addPlayerMoney(curPlayerId(), -p.price * 0.55); // mortgage cost + 10%
-                              toggleMortgage(p.id);
+                              addPlayerMoney(
+                                curPlayerId(),
+                                p.price >> (p.mortgaged ? 2 : 1)
+                              ); // halfcost
+                              setPropOwner(p.id, -1);
+                              // reset mortgage
+                              if (
+                                properties.filter((pr) => pr.id === p.id)[0]
+                                  .mortgaged
+                              )
+                                toggleMortgage(p.id);
                             }}
                           />
-                        ) : (
-                          <MortgageButton
-                            cost={p.price >> 1}
-                            onClick={() => {
-                              toast.info(`Mortgaged ${p.name}`);
-                              addPlayerMoney(curPlayerId(), p.price >> 1); // halfcost
-                              toggleMortgage(p.id);
-                            }}
-                          />
-                        )}
-                        {p.buildings != undefined && p.buildings < 5 ? (
-                          <BuyBuildingButton
-                            cost={p.housecost}
-                            onClick={() => {
-                              toast.info(`Bought 1 building on ${p.name}`);
-                              addPlayerMoney(curPlayerId(), -p.housecost);
-                              addHouse(p.id, 1);
-                            }}
-                          />
-                        ) : null}
-                        {p.buildings ? (
-                          <SellBuildingButton
-                            cost={p.housecost >> 1}
-                            onClick={() => {
-                              toast.info(`Sold 1 building on ${p.name}`);
-                              addPlayerMoney(curPlayerId(), p.housecost >> 1);
-                              addHouse(p.id, -1);
-                            }}
-                          />
-                        ) : null}
-                        <SellButton
-                          cost={p.price >> (p.mortgaged ? 2 : 1)}
+                        </>
+                      )}
+                      {ind == curPlayer().pos && p.ownedby === -1 && (
+                        <BuyButton
+                          cost={p.price}
                           onClick={() => {
-                            addPlayerMoney(
-                              curPlayerId(),
-                              p.price >> (p.mortgaged ? 2 : 1)
-                            ); // halfcost
-                            setPropOwner(p.id, -1);
-                            // reset mortgage
-                            if (
-                              properties.filter((pr) => pr.id === p.id)[0]
-                                .mortgaged
-                            )
-                              toggleMortgage(p.id);
+                            addPlayerMoney(curPlayerId(), -p.price);
+                            setPropOwner(p.id, curPlayerId());
                           }}
                         />
-                      </>
-                    )}
-                    {ind == curPlayer().pos && p.ownedby === -1 && (
-                      <BuyButton
-                        cost={p.price}
-                        onClick={() => {
-                          addPlayerMoney(curPlayerId(), -p.price);
-                          setPropOwner(p.id, curPlayerId());
-                        }}
-                      />
-                    )}
-                  </>
-                )}
-                <br></br>
-                {players
-                  .filter((pl) => pl.pos === ind)
-                  .map((pl) => (
-                    <Player name={pl.name} color={pl.color} />
-                  ))}
-                <br></br>
+                      )}
+                    </>
+                  )}
+                  <br></br>
+                </div>
               </div>
             ))}
         </div>
