@@ -144,7 +144,7 @@ export default function Home() {
       addPlayerMoney(curPlayerId(), -actualRent);
       console.log(landedOn);
       addPlayerMoney(landedOn.ownedby, actualRent);
-      toast(
+      toast.error(
         `Paid ${actualRent} to ${
           players.filter((pl) => pl.id == landedOn.ownedby)[0].name
         }`
@@ -255,7 +255,7 @@ export default function Home() {
       <main className={styles.main}>
         <h1 className={styles.title}>Monopoly</h1>
 
-        <p className={styles.description}>
+        <div className={styles.description}>
           <p>
             {curPlayer().name}'s turn (${curPlayer().money})
           </p>
@@ -281,10 +281,12 @@ export default function Home() {
                 }
                 if (curPlayer().pos === 4) {
                   // pay income tax
-                  // 200 or $10% of assets
-                  // toast("Pay income tax ($...)");
+                  let tax = 200;
+                  // todo: allow paying 10% of assets
+                  addPlayerMoney(curPlayerId(), -tax);
+                  toast.error(`Paid income tax (${tax})`);
                 }
-                if (curPlayer().pos - roll <= 0) {
+                if (curPlayer().pos < roll) {
                   // pass go
                   addPlayerMoney(curPlayerId(), 200);
                   toast("Passed Go, collected $200");
@@ -316,7 +318,7 @@ export default function Home() {
               End Turn
             </button>
           )}
-        </p>
+        </div>
 
         <div className={styles.grid}>
           {tiles
@@ -350,12 +352,20 @@ export default function Home() {
                       </>
                     ) : null}
                     {p.name}
+                    {p.price ? (
+                      <label
+                        style={{ fontSize: ".7em", backgroundColor: "#ccc" }}
+                      >
+                        {" "}
+                        (${calcRent(p)})
+                      </label>
+                    ) : null}
+
                     {/* <label>{p.mortgaged && "(mortgaged)"}</label> */}
                   </p>
 
                   {p.price && (
                     <>
-                      <label>rent = ${calcRent(p)}</label>
                       {p.ownedby == curPlayerId() && (
                         <>
                           {p.mortgaged ? (
@@ -388,7 +398,7 @@ export default function Home() {
                             <BuyBuildingButton
                               cost={p.housecost}
                               onClick={() => {
-                                toast.info(`Bought 1 building on ${p.name}`);
+                                toast.success(`Bought 1 building on ${p.name}`);
                                 addPlayerMoney(curPlayerId(), -p.housecost);
                                 addHouse(p.id, 1);
                               }}
@@ -404,7 +414,7 @@ export default function Home() {
                               }}
                             />
                           ) : null}
-                          {p.buildings == 0 && (
+                          {(p.buildings == 0 || !p.buildings) && (
                             <SellButton
                               cost={p.price >> (p.mortgaged ? 2 : 1)}
                               onClick={() => {
@@ -430,12 +440,12 @@ export default function Home() {
                           onClick={() => {
                             addPlayerMoney(curPlayerId(), -p.price);
                             setPropOwner(p.id, curPlayerId());
+                            toast.success(`Bought ${p.name}`);
                           }}
                         />
                       )}
                     </>
                   )}
-                  <br></br>
                 </div>
               </div>
             ))}
